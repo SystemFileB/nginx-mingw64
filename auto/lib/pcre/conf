@@ -67,10 +67,7 @@ if [ $PCRE != NONE ]; then
     fi
 
 else
-
-    if [ "$NGX_PLATFORM" != win32 ]; then
-        PCRE=NO
-    fi
+    PCRE=NO
 
     if [ $PCRE = NO -a $PCRE2 != DISABLED ]; then
 
