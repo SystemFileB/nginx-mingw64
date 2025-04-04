@@ -2,6 +2,11 @@
 # Copyright (C) Igor Sysoev
 # Copyright (C) Nginx, Inc.
 
+PCRE_PREFIX=NONE
+if [ -d "$PCRE/include" ] && { [ -d "$PCRE/lib" ] || [ -d "$PCRE/lib64" ]; }; then
+    PCRE_PREFIX=$PCRE
+    PCRE=NONE
+fi
 
 if [ $PCRE != NONE ]; then
 
@@ -70,18 +75,32 @@ else
     PCRE=NO
 
     if [ $PCRE = NO -a $PCRE2 != DISABLED ]; then
+        if [ $PCRE_PREFIX != NONE ]; then
+            ngx_feature="PCRE2 library in $PCRE_PREFIX"
+            ngx_feature_name="NGX_PCRE2"
+            ngx_feature_run=no
+            ngx_feature_incs="#define PCRE2_CODE_UNIT_WIDTH 8
+                            #include <pcre2.h>"
+            ngx_feature_path=$PCRE_PREFIX/include
+            ngx_feature_libs="-lpcre2-8"
+            ngx_feature_test="pcre2_code *re;
+                            re = pcre2_compile(NULL, 0, 0, NULL, NULL, NULL);
+                            if (re == NULL) return 1"
+            . auto/feature
 
-        ngx_feature="PCRE2 library"
-        ngx_feature_name="NGX_PCRE2"
-        ngx_feature_run=no
-        ngx_feature_incs="#define PCRE2_CODE_UNIT_WIDTH 8
-                          #include <pcre2.h>"
-        ngx_feature_path=
-        ngx_feature_libs="-lpcre2-8"
-        ngx_feature_test="pcre2_code *re;
-                          re = pcre2_compile(NULL, 0, 0, NULL, NULL, NULL);
-                          if (re == NULL) return 1"
-        . auto/feature
+        else
+            ngx_feature="PCRE2 library"
+            ngx_feature_name="NGX_PCRE2"
+            ngx_feature_run=no
+            ngx_feature_incs="#define PCRE2_CODE_UNIT_WIDTH 8
+                            #include <pcre2.h>"
+            ngx_feature_path=
+            ngx_feature_libs="-lpcre2-8"
+            ngx_feature_test="pcre2_code *re;
+                            re = pcre2_compile(NULL, 0, 0, NULL, NULL, NULL);
+                            if (re == NULL) return 1"
+            . auto/feature
+        fi
 
         if [ $ngx_found = no ]; then
 
@@ -108,17 +127,29 @@ else
     fi
 
     if [ $PCRE = NO ]; then
-
-        ngx_feature="PCRE library"
-        ngx_feature_name="NGX_PCRE"
-        ngx_feature_run=no
-        ngx_feature_incs="#include <pcre.h>"
-        ngx_feature_path=
-        ngx_feature_libs="-lpcre"
-        ngx_feature_test="pcre *re;
-                          re = pcre_compile(NULL, 0, NULL, 0, NULL);
-                          if (re == NULL) return 1"
-        . auto/feature
+        if [ $PCRE_PREFIX!= NONE ]; then
+            ngx_feature="PCRE library in $PCRE_PREFIX"
+            ngx_feature_name="NGX_PCRE"
+            ngx_feature_run=no
+            ngx_feature_incs="#include <pcre.h>"
+            ngx_feature_path="$PCRE_PREFIX/include"
+            ngx_feature_libs="-lpcre"
+            ngx_feature_test="pcre *re;
+                            re = pcre_compile(NULL, 0, NULL, 0, NULL);
+                            if (re == NULL) return 1"
+            . auto/feature
+        else
+            ngx_feature="PCRE library"
+            ngx_feature_name="NGX_PCRE"
+            ngx_feature_run=no
+            ngx_feature_incs="#include <pcre.h>"
+            ngx_feature_path=
+            ngx_feature_libs="-lpcre"
+            ngx_feature_test="pcre *re;
+                            re = pcre_compile(NULL, 0, NULL, 0, NULL);
+                            if (re == NULL) return 1"
+            . auto/feature
+        fi
 
         if [ $ngx_found = no ]; then
 

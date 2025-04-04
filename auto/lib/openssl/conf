@@ -2,7 +2,6 @@
 # Copyright (C) Igor Sysoev
 # Copyright (C) Nginx, Inc.
 
-# Is $OPENSSL is installation directory?
 OPENSSL_PREFIX=NONE
 if [ -d "$OPENSSL/include" ] && { [ -d "$OPENSSL/lib" ] || [ -d "$OPENSSL/lib64" ]; }; then
     OPENSSL_PREFIX=$OPENSSL
@@ -65,17 +64,17 @@ else
     OPENSSL=NO
 
     if [ $OPENSSL_PREFIX != NONE ]; then
-        # if --with-openssl=DIR is OpenSSL installation directory
+
+        # if given OPENSSL_PREFIX
+
         ngx_feature="OpenSSL library in $OPENSSL_PREFIX/"
         ngx_feature_name="NGX_OPENSSL"
         ngx_feature_run=no
         ngx_feature_incs="#include <openssl/ssl.h>"
-        ngx_feature_path=$OPENSSL_PREFIX/include
+        ngx_feature_path="$OPENSSL_PREFIX/include"
         ngx_feature_libs="-L$OPENSSL_PREFIX/lib -lssl -lcrypto $NGX_LIBDL $NGX_LIBPTHREAD"
         ngx_feature_test="SSL_CTX_set_options(NULL, 0)"
         . auto/feature
-
-
     else
         ngx_feature="OpenSSL library"
         ngx_feature_name="NGX_OPENSSL"

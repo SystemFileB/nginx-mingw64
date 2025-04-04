@@ -2,6 +2,12 @@
 # Copyright (C) Igor Sysoev
 # Copyright (C) Nginx, Inc.
 
+ZLIB_PREFIX=NONE
+if [ -d "$ZLIB/include" ] && { [ -d "$ZLIB/lib" ] || [ -d "$ZLIB/lib64" ]; }; then
+    ZLIB_PREFIX=$ZLIB
+    ZLIB=NONE
+fi
+
 
 if [ $ZLIB != NONE ]; then
     CORE_INCS="$CORE_INCS $ZLIB"
@@ -44,17 +50,31 @@ else
 
     ZLIB=NO
 
-    # FreeBSD, Solaris, Linux
+    if [ $ZLIB_PREFIX != NONE ]; then
 
-    ngx_feature="zlib library"
-    ngx_feature_name="NGX_ZLIB"
-    ngx_feature_run=no
-    ngx_feature_incs="#include <zlib.h>"
-    ngx_feature_path= 
-    ngx_feature_libs="-lz"
-    ngx_feature_test="z_stream z; deflate(&z, Z_NO_FLUSH)"
-    . auto/feature
+        # if ZLIB_PREFIX given
+        
+        ngx_feature="zlib library in $ZLIB_PREFIX"
+        ngx_feature_name="NGX_ZLIB"
+        ngx_feature_run=no
+        ngx_feature_incs="#include <zlib.h>"
+        ngx_feature_path="$ZLIB_PREFIX/include"
+        ngx_feature_libs="-lz"
+        ngx_feature_test="z_stream z; deflate(&z, Z_NO_FLUSH)"
+        . auto/feature
+    else
 
+        # FreeBSD, Solaris, Linux
+
+        ngx_feature="zlib library"
+        ngx_feature_name="NGX_ZLIB"
+        ngx_feature_run=no
+        ngx_feature_incs="#include <zlib.h>"
+        ngx_feature_path= 
+        ngx_feature_libs="-lz"
+        ngx_feature_test="z_stream z; deflate(&z, Z_NO_FLUSH)"
+        . auto/feature
+    fi
 
     if [ $ngx_found = yes ]; then
         CORE_LIBS="$CORE_LIBS $ngx_feature_libs"
